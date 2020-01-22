@@ -1,109 +1,99 @@
 const axios = require("axios")
 
-const days = [{
-  "1": "Jan",
-  "2": "Feb",
-  "3": "Mar",
-  "4": "Apr",
-  "5": "May",
-  "6": "Jun",
-  "7": "Jul",
-  "8": "Aug",
-  "9": "Sep",
-  "10": "Oct",
-  "11": "Nov",
-  "12": "Dec",
-}]
+let history = 30
 
-function fetchDailyHits(days, consumerIds) {
-  let urlToFetch = `https://api.foursquare.com/v2/apps/dailystats/?v=20191202&days=${days}&consumerIds=${consumerIds}&byEndpoint=true&oauth_token=DOFQSWVZGSAB5O52HSBZSBCOOTQPDOGBEEANR3DSGF5PEPV2`
+let myClients = [
+  { "consumerId": "FKXEEBAKS22ILUWEGFK2TI33RW1S45MLUMCQZ1IRA3QMTUQA", "name": "Itemize" },
+  { "consumerId": "OBVXKGT02QS1IUOJFXPZCLJE5PKRENVIX1103PGSJMXDVPQK", "name": "Hands Producao E Veiculacao de Media Ltda" },
+  { "consumerId": "114WKEOF1QJ3JRNJYGQA4X3BPQRZZFL4TBKO3ZX43J1NY4TN", "name": "MyFitnessPal" },
+  { "consumerId": "5FVCWV5PEP2FPNAIBHO3CT4K04LWBJI5GH2F3PJ5LJQVXUEK", "name": "Viber Media Inc" },
+  { "consumerId": "BJTJQAC2LSYLTLPYK501FXBZTITAORIV1WQWY013ZTMLKMGV", "name": "Atlis" },
+  { "consumerId": "54J44OEAA3APGYGIVART2CZRE1QF2RJP3LWSRPFTD5H1PO11", "name": "NTENT" },
+  { "consumerId": "0FPIV231TYEKPSATPGC5OXH4DSFLIYVMKASAAW1SKQUFEDTF", "name": "Conde Nast Traveler" },
+  { "consumerId": "CETMZBN5OHSWVRQJGIAA1J25I01OEN535OXMOKRGJOOGBFXG", "name": "Conde Nast Amenity Map" },
+  { "consumerId": "BCTFBU31G2OJGGPU5W5MSAJGPFDH2NREK3CBAC0PXJVN052G", "name": "DoorDash" },
+  { "consumerId": "U5FDUJDVOQT03LJKYOVBEIRGTWVAOL4OF3O4XEQM2ZZ31Z41", "name": "DoorDash Test" },
+  { "consumerId": "O3QSN5IVNMKZZGTB0U5SJ5AWF2UXN35YIVSP2G3B2VAL1OTW", "name": "Northcube - LifeCycle" },
+  { "consumerId": "MMLMKZKIDZJXJTBNRLUMP4EUPQKOEJQEXOPVVKU111SBJQQM", "name": "Taxibeat" },
+  { "consumerId": "AU5IZGHUUQHTQGS12FZ2WXWFEL33RVSW2DC11FVWOZMLZFDL", "name": "TaxibeatiOSPass" },
+  { "consumerId": "0ULMSAMHVOBG2FSC2QO0JSTNIEVDRHN4G4QWY2LKCD503RNI", "name": "Taxibeat" },
+  { "consumerId": "ZHP1O1ZIKQJAEUJDUWSUMXNP0N25EKZNR455OJV5RVSD5PTL", "name": "Postmates" },
+  { "consumerId": "W1EW1GWD3A4YFOX0NWWNOUKNBDUZSQZGULNMY55P5OUAYF1Y", "name": "Full Contact" },
+  { "consumerId": "O5C1I3JZWT4W5QZPNHD1X0MO5TJKKIE0AAC1EWBCRPKXJ4QC", "name": "Full Contact Beta" },
+  { "consumerId": "DIXNMNZOGK4MMF2YLNK5KGEC0QGGKFLKY0WOO1VL205XM5GP", "name": "Full Contact Dev" },
+  { "consumerId": "U4SZROLHEAVDDQHC04MKEYK2ML511HOFT4CZZFLS5C3GJCU2", "name": "Full Contact Alpha" },
+  { "consumerId": "EGFXVQGOPN2ABTSFRBUTNAFCRWXL3NGWSBHQEOGYR2IEL0GX", "name": "Vero" },
+  { "consumerId": "O4HRWENKPWQ2Q0GTVEG1P5ULRY2PO5XALRJHHNJIK5UNPGV0", "name": "Deloitte - The Wombat App" }
+]
 
-  axios.get(urlToFetch).then((response) => {
-    let data = response.data
-    let aggStats = data.response.aggregatedStats
-    console.log(data)
-    let stats = data.response.stats
-    let dailyStats = stats[0].dailyStats
-
-    filterDailyHits(dailyStats)
-
-    console.log(dailyStats)
+function fetchHitsForMultipleIds(consumers) {
+  consumers.forEach((consumer) => {
+    fetchDailyHits(history, consumer)
   })
 }
 
-function filterDailyHits(stats) {
-  const dateAndEndpoints = []
+function fetchDailyHits(days, consumer) {
+  let consumerId = consumer.consumerId
+  let consumerName = consumer.name
 
-  if (stats.length != 0) {
-    stats.filter((stat) => {
-      let endpoints = stat.endpointStats
-      if (stat.totalCount > 0) {
-        const dailyEndpoint = {
-          "date": stat.date,
-          "endpoints": endpoints
-        }
-        dateAndEndpoints.push(dailyEndpoint)
+  let urlToFetch = `https://api.foursquare.com/v2/apps/dailystats/?v=20191202&days=${days}&consumerIds=${consumerId}&byEndpoint=true&oauth_token=DOFQSWVZGSAB5O52HSBZSBCOOTQPDOGBEEANR3DSGF5PEPV2`
+
+  try {
+    axios.get(urlToFetch).then((response) => {
+      let data = response.data
+      let stats = data.response.stats
+
+      if (stats === undefined) {
+        console.log({ consumerName, "consumerId": consumerId, "endpoints": "No stats for user" })
       }
+
+      let dailyStats = stats[0].dailyStats
+
+      filterDailyHits(consumer, dailyStats)
     })
 
-    console.log(dateAndEndpoints)
-  } else {
-    console.log("No records")
+  } catch (error) {
+
+    console.log(error)
   }
-
-  const firstReductionToEndpoints = reduceToMonthlyAgg(dateAndEndpoints)
-  const secondReduction = reduceData(firstReductionToEndpoints)
-  console.log(secondReduction)
 }
 
-function reduceToMonthlyAgg(stats) {
-  // 1. Reduce to endpoints
-  const endpoints = stats.reduce((total, stat) => {
-    stat.endpoints.forEach((endpoint) => {
-      total.push(endpoint)
+function filterDailyHits(consumer, data) {
+  const filteredStats = []
+
+  if (data.length != 0) {
+    data.filter((stat) => {
+      if (stat.totalCount > 0) {
+        filteredStats.push(stat)
+      }
     })
-    return total
-  }, [])
+    // reduce endpoints
+    const totalEndpoints = filteredStats.reduce((total, stat) => {
+      stat.endpointStats.forEach((endpoint) => {
+        total.push(endpoint)
+      })
+      return total
+    }, [])
 
-  return endpoints
-}
-
-function reduceData(data) {
-  const reduction = data.reduce((total, dataPoint) => {
-    let path = dataPoint.path
-
-    if (!total[path]) {
-      total[path] = dataPoint.count
-    } else {
-      total[path] += dataPoint.count
-    }
-
-    return total
-  }, {})
-
-  return reduction
-}
-
-fetchDailyHits(31, "EJSNJHR22OGG3BYSNDAPDELV1OWKFABVIDDA4Y4FWJEV3DWL")
-
-let object = {
-  key: "XXXX",
-  info: [
-    {
-      month: "Jan",
-      stats: {
-        "endpointOne": 12,
-        "endpointTwo": 24
+    const uniqueEndpoints = totalEndpoints.reduce((total, endpoint) => {
+      let path = endpoint.path
+      if (!total[path]) {
+        total[path] = endpoint.count
+      } else {
+        total[path] += endpoint.count
       }
-    },
-    {
-      month: "Feb",
-      stats: {
-        "endpointOne": 12,
-        "endpointTwo": 24
-      }
-    }
-  ]
+      return total
+    }, {})
+
+    console.log({
+      "name": consumer.name, "consumerId": consumer.consumerId, "endpoints": uniqueEndpoints
+    })
+
+  } else {
+
+    console.log({ "name": consumer.name, "consumerId": consumer.consumerId, "endpoints": `No activity` })
+  }
 }
 
-  // look at the date and categorize it. Once the date is categorized, create an object with the month that performs the reducing function and add that for the stats.
+fetchHitsForMultipleIds(myClients)
+// fetchDailyHits(30, "5FVCWV5PEP2FPNAIBHO3CT4K04LWBJI5GH2F3PJ5LJQVXUEK")
