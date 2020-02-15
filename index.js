@@ -55,19 +55,7 @@ function fetchHits(days, consumer) {
 
   axios.get(urlToFetch).then((response) => {
     let data = response.data
-    let stats = data.response.stats
-
-    if (stats == undefined) {
-      console.log({ consumerName, "consumerId": consumerId, "endpoints": "No stats for user" })
-    }
-
-    let dailyStats = stats[0].dailyStats
-
-    if (dailyStats == undefined) {
-      console.log({ consumerName, "consumerId": consumerId, "endpoints": "No stats for user" })
-    }
-
-    filterDailyHits(consumer, dailyStats)
+    filterDailyHits(consumer, data)
   }).catch((error) => {
     console.log(error.response)
   })
@@ -75,9 +63,21 @@ function fetchHits(days, consumer) {
 
 function filterDailyHits(consumer, data) {
   const newStats = []
+  let stats = data.response.stats
+  let consumerInfo = stats[0]
 
-  if (data.length != 0) {
-    data.filter((stat) => {
+  if (stats == undefined) {
+    console.log({ consumerName, "consumerId": consumerId, "endpoints": "No stats for user" })
+  }
+
+  let dailyStats = consumerInfo.dailyStats
+
+  if (dailyStats == undefined) {
+    console.log({ consumerName, "consumerId": consumerId, "endpoints": "No stats for user" })
+  }
+
+  if (dailyStats.length != 0) {
+    dailyStats.filter((stat) => {
       if (stat.totalCount > 0) {
         const newStat = {}
         const month = months[stat.date.split("-")[1].slice(1)]
@@ -88,7 +88,6 @@ function filterDailyHits(consumer, data) {
       }
     })
 
-    //reduce months
     const endpointsByMonth = newStats.reduce((total, stat) => {
       let month = stat.month
       let endpoints = stat.endpoints
@@ -104,10 +103,9 @@ function filterDailyHits(consumer, data) {
     }, {})
 
     const uniqueEndpointsByMonth = Object.keys(endpointsByMonth).map((month) => {
-      let test = {}
-
-      test.month = month
-      test.paths = endpointsByMonth[month].reduce((total, endpoint) => {
+      let stat = {}
+      stat.month = month
+      stat.paths = endpointsByMonth[month].reduce((total, endpoint) => {
         let path = endpoint.path
         let count = endpoint.count
         if (!total[path]) {
@@ -119,15 +117,14 @@ function filterDailyHits(consumer, data) {
         return total
       }, {})
 
-      return test
+      return stat
     })
 
-    console.log({ "name": consumer.name, "consumerId": consumer.consumerId, "usage": uniqueEndpointsByMonth })
+    console.log({ "name": consumer.name, "consumer_id": consumer.consumerId, "total_calls": consumerInfo.totalCount, "monthly_usage": uniqueEndpointsByMonth })
 
   } else {
-    console.log({ "name": consumer.name, "consumerId": consumer.consumerId, "endpoints": `No activity` })
+    console.log({ "name": consumer.name, "consumer_id": consumer.consumerId, "total_calls": 0, "monthly_usage": 'No activity' })
   }
 }
 
 fetchHitsForConsumers(myClients)
-/* fetchHits(30, "BCTFBU31G2OJGGPU5W5MSAJGPFDH2NREK3CBAC0PXJVN052G") */
