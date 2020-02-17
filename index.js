@@ -20,9 +20,7 @@ let months = {
   "12": "Dec"
 }
 
-let consumerIds = [
-  "0FPIV231TYEKPSATPGC5OXH4DSFLIYVMKASAAW1SKQUFEDTF"
-]
+let consumerIds = []
 
 function fetchHitsForConsumers(ids) {
   ids.forEach((id) => {
@@ -40,7 +38,7 @@ async function fetchHits(days, consumerId) {
     return calculateUsage(consumerId, stats)
   } catch (error) {
     if (error) {
-      console.log(error.response)
+      console.log(error.response.data)
     }
   }
 }
@@ -111,5 +109,4 @@ function calculateUsage(consumerId, data) {
 }
 
 fetchHitsForConsumers(consumerIds)
-/* fetchHits(60, "0FPIV231TYEKPSATPGC5OXH4DSFLIYVMKASAAW1SKQUFEDTF") */
 
