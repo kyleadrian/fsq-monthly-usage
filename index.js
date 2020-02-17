@@ -1,6 +1,7 @@
 const axios = require("axios")
-
 // parse cli arguments here
+
+let oauth_token = "" // Foursquare OAuth Token
 
 let daysHistory = 30
 
@@ -30,7 +31,7 @@ function fetchHitsForConsumers(ids) {
 }
 
 async function fetchHits(days, consumerId) {
-  let urlToFetch = `https://api.foursquare.com/v2/apps/dailystats/?v=20191202&days=${days}&consumerIds=${consumerId}&byEndpoint=true&oauth_token=DOFQSWVZGSAB5O52HSBZSBCOOTQPDOGBEEANR3DSGF5PEPV2`
+  let urlToFetch = `https://api.foursquare.com/v2/apps/dailystats/?v=20191202&days=${days}&consumerIds=${consumerId}&byEndpoint=true&oauth_token=${oauth_token}`
 
   try {
     let response = await axios.get(urlToFetch)
