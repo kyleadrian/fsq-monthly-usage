@@ -1,28 +1,28 @@
 const axios = require("axios")
-// parse cli arguments here
+const args = require("yargs").argv
 
-let oauth_token = "" // Foursquare OAuth Token
-
-let daysHistory = 30
+let oauth_token = args.token
+let daysHistory = args.days
+let consumerIds = args.consumer_id.split(",")
 
 let months = {
-  "1": "Jan",
-  "2": "Feb",
-  "3": "Mar",
-  "4": "Apr",
-  "5": "May",
-  "6": "Jun",
-  "7": "Jul",
-  "8": "Aug",
-  "9": "Sep",
+  "01": "Jan",
+  "02": "Feb",
+  "03": "Mar",
+  "04": "Apr",
+  "05": "May",
+  "06": "Jun",
+  "07": "Jul",
+  "08": "Aug",
+  "09": "Sep",
   "10": "Oct",
   "11": "Nov",
   "12": "Dec"
 }
 
-let consumerIds = []
+fetchUsageForConsumers(consumerIds)
 
-function fetchHitsForConsumers(ids) {
+function fetchUsageForConsumers(ids) {
   ids.forEach((id) => {
     fetchHits(daysHistory, id)
   })
@@ -38,7 +38,15 @@ async function fetchHits(days, consumerId) {
     return calculateUsage(consumerId, stats)
   } catch (error) {
     if (error) {
-      console.log(error.response.data)
+      if (error.response) {
+        console.log(error.response.data);
+        console.log(error.response.status);
+        console.log(error.response.headers);
+      } else if (error.request) {
+        console.log(error.request);
+      } else {
+        console.log(`Fetch Error for ${consumerId}:`, error.message);
+      }
     }
   }
 }
@@ -61,8 +69,9 @@ function calculateUsage(consumerId, data) {
   if (dailyStats.length != 0) {
     dailyStats.filter((stat) => {
       if (stat.totalCount > 0) {
+        /*         const formatted = stat.date.split("-")[1].includes("0") ? stat.date.split("-")[1].slice(1) : stat.date.split("-")[1] */
         const newStat = {}
-        const month = months[stat.date.split("-")[1].slice(1)]
+        const month = months[stat.date.split("-")[1]]
         const year = stat.date.split("-")[0]
         newStat.month = `${month}-${year}`
         newStat.endpoints = stat.endpointStats
@@ -107,6 +116,4 @@ function calculateUsage(consumerId, data) {
     console.log({ "consumer_id": consumerId, "total_calls": 0, "monthly_usage": 'No activity' })
   }
 }
-
-fetchHitsForConsumers(consumerIds)
 
