@@ -69,7 +69,6 @@ function calculateUsage(consumerId, data) {
   if (dailyStats.length != 0) {
     dailyStats.filter((stat) => {
       if (stat.totalCount > 0) {
-        /*         const formatted = stat.date.split("-")[1].includes("0") ? stat.date.split("-")[1].slice(1) : stat.date.split("-")[1] */
         const newStat = {}
         const month = months[stat.date.split("-")[1]]
         const year = stat.date.split("-")[0]
